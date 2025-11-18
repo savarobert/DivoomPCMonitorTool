@@ -11,53 +11,21 @@ using Newtonsoft.Json;
 using DivoomPcMonitor.Infrastructure;
 using System.Net.Http;
 using System.Threading.Tasks;
+using DivoomPcMonitor.Domain.Clients;
 
 namespace DivoomPCMonitorTool
 {
     public partial class MainForm : Form
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpServiceClient _httpServiceClient;
 
-        public MainForm(IHttpClientFactory httpClientFactory)
+        public MainForm(IHttpServiceClient httpServiceClient)
         {
-            _httpClientFactory = httpClientFactory;
+            _httpServiceClient = httpServiceClient;
             InitializeComponent();
             _lcdMsg.Visible = false;
             _lcdList.Visible = false;
             _ = DivoomUpdateDeviceList();
-        }
-        public async Task<string> HttpPostAsync(string url, string sendData)
-        {
-            try
-            {
-                using var client = _httpClientFactory.CreateClient();
-                using var content = new StringContent(sendData, Encoding.UTF8, "application/json");
-                var response = await client.PostAsync(url, content).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-        }
-
-        public async Task<string> HttpPost2Async(string Url, string postDataStr)
-        {
-            using var client = _httpClientFactory.CreateClient();
-            using var content = new StringContent(postDataStr, Encoding.UTF8, "application/x-www-form-urlencoded");
-            var response = await client.PostAsync(Url, content).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-        }
-
-        // GET方法
-        public async Task<string> HttpGetAsync(string Url)
-        {
-            using var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync(Url).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
         private async void DivoomSendHttpInfo(object sender, EventArgs e)
@@ -246,13 +214,13 @@ namespace DivoomPCMonitorTool
             _RamUse.Text = "RamUse: " + _sensorValues.RamUseValue;
             string para_info = JsonConvert.SerializeObject(postInfo);
             Console.WriteLine("request info:" + para_info);
-            string response_info = await HttpPostAsync("http://" + _deviceIpAddr + ":80/post", para_info);
+            string response_info = await _httpServiceClient.PostJsonAsync("http://" + _deviceIpAddr + ":80/post", para_info);
             Console.WriteLine("get info:" + response_info);
         }
         private async Task DivoomUpdateDeviceList()
         {
             int i;
-            string deviceList = await HttpGetAsync(UrlInfo);
+            string deviceList = await _httpServiceClient.GetAsync(UrlInfo);
             // Console.WriteLine(device_list);
             _localList = JsonConvert.DeserializeObject<DivoomDeviceList>(deviceList);
             _devicesListBox.Items.Clear();
@@ -276,7 +244,7 @@ namespace DivoomPCMonitorTool
             {
                 //get the Independence index of timegate 
                 string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + _localList.DeviceList[_devicesListBox.SelectedIndex].DeviceId;
-                string IndependenceStr = await HttpGetAsync(url_info);
+                string IndependenceStr = await _httpServiceClient.GetAsync(url_info);
                 if (IndependenceStr != null && IndependenceStr.Length > 0)
                 {
                     TimeGateIndependenceInfo IndependenceInfo = JsonConvert.DeserializeObject<TimeGateIndependenceInfo>(IndependenceStr);
@@ -297,7 +265,7 @@ namespace DivoomPCMonitorTool
             var PostInfo = new DeviceSelectClockInfo { LcdIndependence = _lcdIndependence, Command = "Channel/SetClockSelectId", LcdIndex = _lcdList.SelectedIndex, ClockId = 625 };
             string para_info = JsonConvert.SerializeObject(PostInfo);
             Console.WriteLine("request info:" + para_info);
-            string response_info = await HttpPostAsync("http://" + _deviceIpAddr + ":80/post", para_info);
+            string response_info = await _httpServiceClient.PostJsonAsync("http://" + _deviceIpAddr + ":80/post", para_info);
 
         }
         private async void divoomList_SelectedIndexChanged(object sender, EventArgs e)

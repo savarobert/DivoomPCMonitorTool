@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using DivoomPcMonitor.Infrastructure;
+using DivoomPcMonitor.Domain.Clients;
 
 namespace DivoomPCMonitorTool
 {
@@ -18,6 +19,8 @@ namespace DivoomPCMonitorTool
                 .ConfigureServices((context, services) =>
                 {
                     services.AddHttpClient();
+                    // Register the HttpServiceClient
+                    services.AddSingleton<IHttpServiceClient, HttpServiceClient>();
                     // Register the WinForms main form for constructor injection
                     services.AddSingleton<MainForm>();
                 })
