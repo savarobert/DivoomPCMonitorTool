@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using DivoomPcMonitor.Infrastructure;
 
 namespace DivoomPCMonitorTool
 {
@@ -11,9 +14,23 @@ namespace DivoomPCMonitorTool
         [STAThread]
         static void Main()
         {
+            var builder = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    services.AddHttpClient();
+                    // Register the WinForms main form for constructor injection
+                    services.AddSingleton<MainForm>();
+                })
+                .UseConsoleLifetime();
+
+            var host = builder.Build();
+
+            // Resolve MainForm from the DI container so dependencies are injected
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+
+            var mainForm = host.Services.GetRequiredService<MainForm>();
+            Application.Run(mainForm);
         }
     }
 }
