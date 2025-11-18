@@ -4,14 +4,14 @@ using System.Text;
 
 namespace DivoomPcMonitor.Domain.Contracts
 {
-    public class DeviceInfo
+    public record DeviceInfo
     {
-        public int DeviceId { get; set; }
+        public int DeviceId { get; init; }
 
-        public int Hardware { get; set; }
+        public int Hardware { get; init; }
 
-        public string DeviceName { get; set; }
-        public string DevicePrivateIP { get; set; }
-        public string DeviceMac { get; set; }
+        public string DeviceName { get; init; } = string.Empty;
+        public string DevicePrivateIP { get; init; } = string.Empty;
+        public string DeviceMac { get; init; } = string.Empty;
     }
 }

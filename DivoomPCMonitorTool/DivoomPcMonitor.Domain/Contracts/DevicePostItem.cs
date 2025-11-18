@@ -1,9 +1,9 @@
 namespace DivoomPcMonitor.Domain.Contracts
 {
-    public class DevicePostItem
+    public record DevicePostItem
     {
-        public int LcdId { get; set; }
+        public int LcdId { get; init; }
 
-        public string[] DispData { get; set; }
+        public string[] DispData { get; init; } = Array.Empty<string>();
     }
 }

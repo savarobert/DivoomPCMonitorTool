@@ -94,22 +94,17 @@ namespace DivoomPCMonitorTool
 
         private void DivoomSendHttpInfo(object sender, EventArgs e)
         {
-            if (_deviceIpAddr == null || _localList == null || _localList.DivoomDeviceList == null || _localList.DivoomDeviceList.Length == 0)
+            if (_deviceIpAddr == null || _localList == null || _localList.DeviceList == null || _localList.DeviceList.Length == 0)
             {
                 return;
 
             }
-            string CpuTemp_value = "--", CpuUse_value = "--", GpuTemp_value = "--", GpuUse_value = "--", DispUse_value = "--", HardDiskUse_value = "--";
 
-            DevicePostList PostInfo = new DevicePostList();
-            DevicePostItem PostItem = new DevicePostItem();
-            PostInfo.Command = "Device/UpdatePCParaInfo";
-            PostInfo.ScreenList = new DevicePostItem[1];
-            PostItem.DispData = new string[6];
+            var PostItem = new DevicePostItem { LcdId = _selectedLcdId, DispData = new string[6] };
+            var PostInfo = new DevicePostList { Command = "Device/UpdatePCParaInfo", ScreenList = new[] { PostItem } };
 
             if (_deviceIpAddr.Length > 0)
             {
-                PostItem.LcdId = _selectedLcdId;
                 _computer.Accept(_updateVisitor);
                 for (int i = 0; i < _computer.Hardware.Count; i++)
                 {
@@ -121,17 +116,17 @@ namespace DivoomPCMonitorTool
                             //找到温度传感器
                             if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
                             {
-                                CpuTemp_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                CpuTemp_value += "C";
+                                _sensorValues.CpuTemp_value = _computer.Hardware[i].Sensors[j].Value.ToString();
+                                _sensorValues.CpuTemp_value += "C";
                             }
                             else if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
                             {
-                                CpuUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                if (CpuUse_value.Length > 2)
+                                _sensorValues.CpuUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
+                                if (_sensorValues.CpuUse_value.Length > 2)
                                 {
-                                    CpuUse_value = CpuUse_value.Substring(0, 2);
+                                    _sensorValues.CpuUse_value = _sensorValues.CpuUse_value.Substring(0, 2);
                                 }
-                                CpuUse_value += "%";
+                                _sensorValues.CpuUse_value += "%";
                             }
                         }
                     }
@@ -143,17 +138,17 @@ namespace DivoomPCMonitorTool
                             //找到温度传感器
                             if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
                             {
-                                GpuTemp_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                GpuTemp_value += "C";
+                                _sensorValues.GpuTemp_value = _computer.Hardware[i].Sensors[j].Value.ToString();
+                                _sensorValues.GpuTemp_value += "C";
                             }
                             else if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
                             {
-                                GpuUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                if (GpuUse_value.Length > 2)
+                                _sensorValues.GpuUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
+                                if (_sensorValues.GpuUse_value.Length > 2)
                                 {
-                                    GpuUse_value = GpuUse_value.Substring(0, 2);
+                                    _sensorValues.GpuUse_value = _sensorValues.GpuUse_value.Substring(0, 2);
                                 }
-                                GpuUse_value += "%";
+                                _sensorValues.GpuUse_value += "%";
                             }
                         }
                     }
@@ -164,8 +159,8 @@ namespace DivoomPCMonitorTool
                             //HDD TEMP
                             if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
                             {
-                                HardDiskUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                HardDiskUse_value += "C";
+                                _sensorValues.HardDiskUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
+                                _sensorValues.HardDiskUse_value += "C";
                                 break;
                             }
                         }
@@ -177,20 +172,19 @@ namespace DivoomPCMonitorTool
 
                 GlobalMemoryStatusEx(ref memInfo);
 
-                DispUse_value = ((memInfo.ullTotalPhys - memInfo.ullAvailPhys) * 100 / memInfo.ullTotalPhys).ToString().Substring(0, 2) + "%";
-                PostItem.DispData[2] = CpuTemp_value;
-                PostItem.DispData[0] = CpuUse_value;
-                PostItem.DispData[3] = GpuTemp_value;
-                PostItem.DispData[1] = GpuUse_value;
-                PostItem.DispData[5] = HardDiskUse_value;
-                PostItem.DispData[4] = DispUse_value;
-                PostInfo.ScreenList[0] = PostItem;
-                _cpuTemp.Text = "CpuTemp:" + CpuTemp_value;
-                _cpuUse.Text = "CpuUse:" + CpuUse_value;
-                _gpuTemp.Text = "GpuTemp:" + GpuTemp_value;
-                _gpuUse.Text = "GpuUse:" + GpuUse_value;
-                _hddUse.Text = "HddUse:" + HardDiskUse_value;
-                _dispUse.Text = "DispUse:" + DispUse_value;
+                _sensorValues.RamUse_value = ((memInfo.ullTotalPhys - memInfo.ullAvailPhys) * 100 / memInfo.ullTotalPhys).ToString().Substring(0, 2) + "%";
+                PostItem.DispData[2] = _sensorValues.CpuTemp_value;
+                PostItem.DispData[0] = _sensorValues.CpuUse_value;
+                PostItem.DispData[3] = _sensorValues.GpuTemp_value;
+                PostItem.DispData[1] = _sensorValues.GpuUse_value;
+                PostItem.DispData[5] = _sensorValues.HardDiskUse_value;
+                PostItem.DispData[4] = _sensorValues.RamUse_value;
+                _cpuTemp.Text = "CpuTemp: " + _sensorValues.CpuTemp_value;
+                _cpuUse.Text = "CpuUse: " + _sensorValues.CpuUse_value;
+                _gpuTemp.Text = "GpuTemp: " + _sensorValues.GpuTemp_value;
+                _gpuUse.Text = "GpuUse: " + _sensorValues.GpuUse_value;
+                _hddUse.Text = "HddUse: " + _sensorValues.HardDiskUse_value;
+                _RamUse.Text = "RamUse: " + _sensorValues.RamUse_value;
                 string para_info = JsonConvert.SerializeObject(PostInfo);
                 Console.WriteLine("request info:" + para_info);
                 string response_info;
@@ -204,11 +198,11 @@ namespace DivoomPCMonitorTool
             string url_info = "http://app.divoom-gz.com/Device/ReturnSameLANDevice";
             string device_list = HttpGet(url_info, "");
             // Console.WriteLine(device_list);
-            _localList = JsonConvert.DeserializeObject<DeviceList>(device_list);
+            _localList = JsonConvert.DeserializeObject<DivoomDeviceList>(device_list);
             _devicesListBox.Items.Clear();
-            for (i = 0; _localList.DivoomDeviceList != null && i < _localList.DivoomDeviceList.Length; i++)
+            for (i = 0; _localList.DeviceList != null && i < _localList.DeviceList.Length; i++)
             {
-                _devicesListBox.Items.Add(_localList.DivoomDeviceList[i].DeviceName);
+                _devicesListBox.Items.Add(_localList.DeviceList[i].DeviceName);
             }
 
         }
@@ -235,13 +229,13 @@ namespace DivoomPCMonitorTool
         public static extern void GlobalMemoryStatusEx(ref MEMORYSTATUSEX stat);
         private void DivoomSendSelectClock()
         {
-            _deviceIpAddr = _localList.DivoomDeviceList[_devicesListBox.SelectedIndex].DevicePrivateIP;
+            _deviceIpAddr = _localList.DeviceList[_devicesListBox.SelectedIndex].DevicePrivateIP;
             Console.WriteLine("selece items:" + _deviceIpAddr);
 
-            if (_localList.DivoomDeviceList[_devicesListBox.SelectedIndex].Hardware == 400)
+            if (_localList.DeviceList[_devicesListBox.SelectedIndex].Hardware == 400)
             {
                 //get the Independence index of timegate 
-                string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + _localList.DivoomDeviceList[_devicesListBox.SelectedIndex].DeviceId;
+                string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + _localList.DeviceList[_devicesListBox.SelectedIndex].DeviceId;
                 string IndependenceStr = HttpGet(url_info, "");
                 if (IndependenceStr != null && IndependenceStr.Length > 0)
                 {
@@ -260,12 +254,7 @@ namespace DivoomPCMonitorTool
                 _lcdList.Visible = false;
             }
 
-            DeviceSelectClockInfo PostInfo = new DeviceSelectClockInfo();
-
-            PostInfo.LcdIndependence = _lcdIndependence;
-            PostInfo.Command = "Channel/SetClockSelectId";
-            PostInfo.LcdIndex = _lcdList.SelectedIndex;
-            PostInfo.ClockId = 625;
+            var PostInfo = new DeviceSelectClockInfo { LcdIndependence = _lcdIndependence, Command = "Channel/SetClockSelectId", LcdIndex = _lcdList.SelectedIndex, ClockId = 625 };
             string para_info = JsonConvert.SerializeObject(PostInfo);
             Console.WriteLine("request info:" + para_info);
             string response_info;
@@ -284,9 +273,9 @@ namespace DivoomPCMonitorTool
             string raw_value = _lcdList.SelectedItems[0].ToString();
             _selectedLcdId = Convert.ToInt32(raw_value) - 1;
 
-            if(_localList != null && _localList.DivoomDeviceList!=null && _localList.DivoomDeviceList.Count() > 0)
+            if(_localList != null && _localList.DeviceList!=null && _localList.DeviceList.Count() > 0)
             {
-                if (_devicesListBox.SelectedIndex > 0 && _devicesListBox.SelectedIndex < _localList.DivoomDeviceList.Count())
+                if (_devicesListBox.SelectedIndex > 0 && _devicesListBox.SelectedIndex < _localList.DeviceList.Count())
                 {
                     DivoomSendSelectClock();
                 }
@@ -312,8 +301,14 @@ namespace DivoomPCMonitorTool
         public void VisitHardware(IHardware hardware)
         {
             hardware.Update();
-            foreach (IHardware subHardware in hardware.SubHardware)
+            foreach (IHardware subHardware in hardware.SubHardware){
                 subHardware.Accept(this);
+                foreach (ISensor sensor in subHardware.Sensors)
+                {
+                    sensor.Traverse(this);
+                }
+
+            }
         }
 
         public void VisitSensor(ISensor sensor) { }

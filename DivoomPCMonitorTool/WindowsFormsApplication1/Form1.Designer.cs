@@ -3,7 +3,7 @@ using LibreHardwareMonitor.Hardware;
 
 namespace DivoomPCMonitorTool
 {
-    // DeviceList was moved to the Domain project (DivoomPcMonitor.Domain.Contracts)
+    // DivoomDeviceList was moved to the Domain project (DivoomPcMonitor.Domain.Contracts)
     partial class Form1
     {
         private System.Windows.Forms.ListBox _devicesListBox;
@@ -13,18 +13,21 @@ namespace DivoomPCMonitorTool
         private System.Windows.Forms.TextBox _cpuTemp;
         private System.Windows.Forms.TextBox _gpuUse;
         private System.Windows.Forms.TextBox _gpuTemp;
-        private System.Windows.Forms.TextBox _dispUse;
+        private System.Windows.Forms.TextBox _RamUse;
         private System.Windows.Forms.TextBox _hddUse;
         private System.Windows.Forms.Label _lcdMsg;
         private System.Windows.Forms.Label _deviceListMsg;
         private System.Windows.Forms.Label _hardwareInfo;
-        private DeviceList _localList;
+        private DivoomDeviceList _localList;
         private int _selectedLcdId;
         private string _deviceIpAddr;
         private int _lcdIndependence;
 
         private UpdateVisitor _updateVisitor;
         private Computer _computer;
+        private SensorValues _sensorValues;
+
+        private System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();//创建定时器
 
         /// <summary>
         /// 必需的设计器变量。
@@ -57,7 +60,7 @@ namespace DivoomPCMonitorTool
             _cpuTemp = new System.Windows.Forms.TextBox();
             _gpuUse = new System.Windows.Forms.TextBox();
             _gpuTemp = new System.Windows.Forms.TextBox();
-            _dispUse = new System.Windows.Forms.TextBox();
+            _RamUse = new System.Windows.Forms.TextBox();
             _hddUse = new System.Windows.Forms.TextBox();
             _devicesListBox = new System.Windows.Forms.ListBox();
             _lcdList = new System.Windows.Forms.ListBox();
@@ -155,12 +158,12 @@ namespace DivoomPCMonitorTool
             _gpuTemp.TabIndex = 1;
 
 
-            // DispUse
+            // RamUse
             // 
-            _dispUse.Location = new System.Drawing.Point(220, 150);
-            _dispUse.Name = "textBox1";
-            _dispUse.Size = new System.Drawing.Size(100, 20);
-            _dispUse.TabIndex = 1;
+            _RamUse.Location = new System.Drawing.Point(220, 150);
+            _RamUse.Name = "textBox1";
+            _RamUse.Size = new System.Drawing.Size(100, 20);
+            _RamUse.TabIndex = 1;
 
 
             // HddUse
@@ -179,7 +182,7 @@ namespace DivoomPCMonitorTool
             Controls.Add(_cpuTemp);
             Controls.Add(_gpuUse);
             Controls.Add(_gpuTemp);
-            Controls.Add(_dispUse);
+            Controls.Add(_RamUse);
             Controls.Add(_hddUse);
             Controls.Add(_refreshList);
             Controls.Add(_devicesListBox);
@@ -193,11 +196,25 @@ namespace DivoomPCMonitorTool
             _selectedLcdId = 0;
             _deviceIpAddr = "";
 
+            _sensorValues = new SensorValues();
+
             _updateVisitor = new UpdateVisitor();
-            _computer = new Computer();
-            _computer.IsStorageEnabled = true;
+            _computer = new Computer
+            {
+                IsBatteryEnabled = true,
+                IsControllerEnabled = true,
+                IsCpuEnabled = true,
+                IsGpuEnabled = true,
+                IsMemoryEnabled = true,
+                IsMotherboardEnabled = true,
+                IsNetworkEnabled = false,
+                IsPsuEnabled = true,
+                IsStorageEnabled = true
+            };
             _computer.Open();
-            System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();//创建定时器
+
+            var debug = _computer.GetReport();
+
             timer.Tick += new System.EventHandler(DivoomSendHttpInfo);//事件处理
             timer.Enabled = true;//设置启用定时器
             timer.Interval = 2000;//执行时间

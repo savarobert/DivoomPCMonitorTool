@@ -1,9 +1,9 @@
 namespace DivoomPcMonitor.Domain.Contracts
 {
-    public class TimeGateIndependenceInfo
+    public record TimeGateIndependenceInfo
     {
-        public int LcdIndependence { get; set; }
-        public int ChannelType { get; set; }
-        public int ClockId { get; set; }
+        public int LcdIndependence { get; init; }
+        public int ChannelType { get; init; }
+        public int ClockId { get; init; }
     }
 }

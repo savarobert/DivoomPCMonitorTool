@@ -1,11 +1,11 @@
 namespace DivoomPcMonitor.Domain.Contracts
 {
-    public class DeviceSelectClockInfo
+    public record DeviceSelectClockInfo
     {
-        public int LcdIndependence { get; set; }
-        public int DeviceId { get; set; }
-        public int LcdIndex { get; set; }
-        public int ClockId { get; set; }
-        public string Command { get; set; }
+        public int LcdIndependence { get; init; }
+        public int DeviceId { get; init; }
+        public int LcdIndex { get; init; }
+        public int ClockId { get; init; }
+        public string Command { get; init; } = string.Empty;
     }
 }
