@@ -7,7 +7,9 @@
         x:Class="DivoomPcMonitorTool.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="DivoomPcMonitorTool.UI">
+        Title="DivoomPcMonitorTool.UI"
+        Height="450"
+        Width="800">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,

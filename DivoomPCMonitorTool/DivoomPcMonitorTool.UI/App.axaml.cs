@@ -5,7 +5,10 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using DivoomPcMonitorTool.UI.ViewModels;
 using DivoomPcMonitorTool.UI.Views;
+using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
+using DivoomPcMonitor.Domain.Clients;
+using DivoomPcMonitor.Infrastructure;
 
 namespace DivoomPcMonitorTool.UI
 {
@@ -18,6 +21,15 @@ namespace DivoomPcMonitorTool.UI
 
         public override void OnFrameworkInitializationCompleted()
         {
+            var collection = new ServiceCollection();
+
+            collection.AddHttpClient();
+            collection.AddSingleton<IHttpServiceClient, HttpServiceClient>();
+            collection.AddTransient<MainWindowViewModel>();
+
+            var services = collection.BuildServiceProvider();
+            var vm = services.GetRequiredService<MainWindowViewModel>();
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
@@ -25,7 +37,7 @@ namespace DivoomPcMonitorTool.UI
                 DisableAvaloniaDataAnnotationValidation();
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel(),
+                    DataContext = vm
                 };
             }
 

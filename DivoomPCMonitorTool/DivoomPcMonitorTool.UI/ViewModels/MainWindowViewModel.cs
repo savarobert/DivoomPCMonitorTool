@@ -37,7 +37,7 @@ namespace DivoomPcMonitorTool.UI.ViewModels
             }
         }
 
-        private void ExitApp()
+        private static void ExitApp()
         {
             var lifetime = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
             lifetime?.Shutdown();
