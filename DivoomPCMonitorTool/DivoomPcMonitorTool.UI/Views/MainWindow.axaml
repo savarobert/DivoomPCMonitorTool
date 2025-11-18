@@ -44,6 +44,14 @@
             </StackPanel>
         </Border>
 
+        <!-- Refresh button placed above the status bar and centered -->
+        <Button DockPanel.Dock="Bottom"
+                Content="Refresh"
+                Command="{Binding RefreshCommand}"
+                HorizontalAlignment="Center"
+                Width="100"
+                Margin="0,8" />
+
         <!-- Main content area -->
         <Border Margin="32"
                 Background="{DynamicResource ThemeBackgroundBrush}"

@@ -48,6 +48,7 @@ namespace DivoomPcMonitorTool.UI.ViewModels
 
         public IAsyncRelayCommand SettingsCommand { get; }
         public IRelayCommand ExitCommand { get; }
+        public IAsyncRelayCommand RefreshCommand { get; }
 
         private double _progress;
         public double Progress
@@ -75,6 +76,7 @@ namespace DivoomPcMonitorTool.UI.ViewModels
             IsBusy = true;
             SettingsCommand = new AsyncRelayCommand(OpenSettingsAsync);
             ExitCommand = new RelayCommand(ExitApp);
+            RefreshCommand = new AsyncRelayCommand(RefreshAsync);
 
             _updateVisitor = new UpdateVisitor();
 
@@ -83,6 +85,25 @@ namespace DivoomPcMonitorTool.UI.ViewModels
             HardwareInfos.Add(new HardwareInfoVm { Name = "Option 3" });
 
             IsBusy = false;
+        }
+
+        private async Task RefreshAsync()
+        {
+            // Simple refresh stub: update status and toggle busy state.
+            try
+            {
+                IsBusy = true;
+                StatusText = "Refreshing...";
+
+                // TODO: place actual refresh logic here (e.g., re-scan devices, read sensors)
+                await Task.Delay(500);
+
+                StatusText = "Refresh completed";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private async Task OpenSettingsAsync()
