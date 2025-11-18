@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="DivoomPcMonitor.Domain/DivoomPcMonitor.Domain.csproj" Id="f71a368d-85f7-44d4-aa0a-c0c025650ea1" />
   <Project Path="WindowsFormsApplication1/DivoomPCMonitorTool.csproj" Id="2b41c74a-956d-48e5-b424-8f839b211c8a" />
 </Solution>

@@ -1,26 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using System.Threading;
-using System.Net;
-using System.IO;
-using System.Web;
-using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Management;
-using System.Runtime.InteropServices;
+using DivoomPcMonitor.Domain.Contracts;
 using LibreHardwareMonitor.Hardware;
+using Newtonsoft.Json;
 
-
-namespace WindowsFormsApplication1
+namespace DivoomPCMonitorTool
 {
-
-
     public partial class Form1 : Form
     {
         public Form1()
@@ -104,17 +94,17 @@ namespace WindowsFormsApplication1
 
         private void DivoomSendHttpInfo(object sender, EventArgs e)
         {
-            if (_deviceIpAddr == null || _localList == null || _localList.DeviceList == null || _localList.DeviceList.Length == 0)
+            if (_deviceIpAddr == null || _localList == null || _localList.DivoomDeviceList == null || _localList.DivoomDeviceList.Length == 0)
             {
                 return;
 
             }
             string CpuTemp_value = "--", CpuUse_value = "--", GpuTemp_value = "--", GpuUse_value = "--", DispUse_value = "--", HardDiskUse_value = "--";
 
-            DivoomDevicePostList PostInfo = new DivoomDevicePostList();
-            DivoomDevicePostItem PostItem = new DivoomDevicePostItem();
+            DevicePostList PostInfo = new DevicePostList();
+            DevicePostItem PostItem = new DevicePostItem();
             PostInfo.Command = "Device/UpdatePCParaInfo";
-            PostInfo.ScreenList = new DivoomDevicePostItem[1];
+            PostInfo.ScreenList = new DevicePostItem[1];
             PostItem.DispData = new string[6];
 
             if (_deviceIpAddr.Length > 0)
@@ -214,11 +204,11 @@ namespace WindowsFormsApplication1
             string url_info = "http://app.divoom-gz.com/Device/ReturnSameLANDevice";
             string device_list = HttpGet(url_info, "");
             // Console.WriteLine(device_list);
-            _localList = JsonConvert.DeserializeObject<DivoomDeviceList>(device_list);
+            _localList = JsonConvert.DeserializeObject<DeviceList>(device_list);
             _devicesListBox.Items.Clear();
-            for (i = 0; _localList.DeviceList != null && i < _localList.DeviceList.Length; i++)
+            for (i = 0; _localList.DivoomDeviceList != null && i < _localList.DivoomDeviceList.Length; i++)
             {
-                _devicesListBox.Items.Add(_localList.DeviceList[i].DeviceName);
+                _devicesListBox.Items.Add(_localList.DivoomDeviceList[i].DeviceName);
             }
 
         }
@@ -245,17 +235,17 @@ namespace WindowsFormsApplication1
         public static extern void GlobalMemoryStatusEx(ref MEMORYSTATUSEX stat);
         private void DivoomSendSelectClock()
         {
-            _deviceIpAddr = _localList.DeviceList[_devicesListBox.SelectedIndex].DevicePrivateIP;
+            _deviceIpAddr = _localList.DivoomDeviceList[_devicesListBox.SelectedIndex].DevicePrivateIP;
             Console.WriteLine("selece items:" + _deviceIpAddr);
 
-            if (_localList.DeviceList[_devicesListBox.SelectedIndex].Hardware == 400)
+            if (_localList.DivoomDeviceList[_devicesListBox.SelectedIndex].Hardware == 400)
             {
                 //get the Independence index of timegate 
-                string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + _localList.DeviceList[_devicesListBox.SelectedIndex].DeviceId;
+                string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + _localList.DivoomDeviceList[_devicesListBox.SelectedIndex].DeviceId;
                 string IndependenceStr = HttpGet(url_info, "");
                 if (IndependenceStr != null && IndependenceStr.Length > 0)
                 {
-                    DivoomTimeGateIndependenceInfo IndependenceInfo = JsonConvert.DeserializeObject<DivoomTimeGateIndependenceInfo>(IndependenceStr);
+                    TimeGateIndependenceInfo IndependenceInfo = JsonConvert.DeserializeObject<TimeGateIndependenceInfo>(IndependenceStr);
 
                     _lcdIndependence = IndependenceInfo.LcdIndependence;
 
@@ -270,7 +260,7 @@ namespace WindowsFormsApplication1
                 _lcdList.Visible = false;
             }
 
-            DivoomDeviceSelectClockInfo PostInfo = new DivoomDeviceSelectClockInfo();
+            DeviceSelectClockInfo PostInfo = new DeviceSelectClockInfo();
 
             PostInfo.LcdIndependence = _lcdIndependence;
             PostInfo.Command = "Channel/SetClockSelectId";
@@ -294,9 +284,9 @@ namespace WindowsFormsApplication1
             string raw_value = _lcdList.SelectedItems[0].ToString();
             _selectedLcdId = Convert.ToInt32(raw_value) - 1;
 
-            if(_localList != null && _localList.DeviceList!=null && _localList.DeviceList.Count() > 0)
+            if(_localList != null && _localList.DivoomDeviceList!=null && _localList.DivoomDeviceList.Count() > 0)
             {
-                if (_devicesListBox.SelectedIndex > 0 && _devicesListBox.SelectedIndex < _localList.DeviceList.Count())
+                if (_devicesListBox.SelectedIndex > 0 && _devicesListBox.SelectedIndex < _localList.DivoomDeviceList.Count())
                 {
                     DivoomSendSelectClock();
                 }
@@ -311,36 +301,7 @@ namespace WindowsFormsApplication1
         }
     }
 
-    public class DivoomDeviceSelectClockInfo
-    {
-        public int LcdIndependence { get; set; }
-        public int DeviceId { get; set; }
-        public int LcdIndex { get; set; }
-        public int ClockId { get; set; }
-        public string Command { get; set; }
-    }
-    public class DivoomTimeGateIndependenceInfo
-    {
-        public int LcdIndependence { get; set; }
-        public int ChannelType { get; set; }
-        public int ClockId { get; set; }
-    }
 
-
-    public class DivoomDevicePostItem
-    {
-        public int LcdId { get; set; }
-
-
-        public string[] DispData { get; set; }
-
-    }
-    public class DivoomDevicePostList
-    {
-        public string Command { get; set; }
-        public DivoomDevicePostItem[] ScreenList { get; set; }
-
-    }
     public class UpdateVisitor : IVisitor
     {
         public void VisitComputer(IComputer computer)

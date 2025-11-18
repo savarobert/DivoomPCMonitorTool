@@ -1,24 +1,9 @@
-﻿using LibreHardwareMonitor.Hardware;
+﻿using DivoomPcMonitor.Domain.Contracts;
+using LibreHardwareMonitor.Hardware;
 
-namespace WindowsFormsApplication1
+namespace DivoomPCMonitorTool
 {
-    public class DivoomDeviceInfo
-    {
-        public int DeviceId { get; set; }
-
-        public int Hardware { get; set; }
-
-        public string DeviceName { get; set; }
-        public string DevicePrivateIP { get; set; }
-        public string DeviceMac { get; set; }
-
-    }
-    public class DivoomDeviceList
-    {
-
-        public DivoomDeviceInfo[] DeviceList { get; set; }
-
-    }
+    // DeviceList was moved to the Domain project (DivoomPcMonitor.Domain.Contracts)
     partial class Form1
     {
         private System.Windows.Forms.ListBox _devicesListBox;
@@ -33,9 +18,8 @@ namespace WindowsFormsApplication1
         private System.Windows.Forms.Label _lcdMsg;
         private System.Windows.Forms.Label _deviceListMsg;
         private System.Windows.Forms.Label _hardwareInfo;
-        private DivoomDeviceList _localList;
+        private DeviceList _localList;
         private int _selectedLcdId;
-        private System.Windows.Forms.Timer _timer;
         private string _deviceIpAddr;
         private int _lcdIndependence;
 
