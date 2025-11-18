@@ -132,14 +132,22 @@ namespace DivoomPCMonitorTool
                             }
                         }
                     }
+                    else if (_computer.Hardware[i].HardwareType == HardwareType.Memory && _computer.Hardware[i].Name.Equals("Total Memory"))
+                    {
+                        for (int j = 0; j < _computer.Hardware[i].Sensors.Length; j++)
+                        {
+                            //HDD TEMP
+                            if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
+                            {
+                                _sensorValues.RamUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
+                                _sensorValues.RamUse_value += "%";
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                MEMORYSTATUSEX memInfo = new MEMORYSTATUSEX();
-                memInfo.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
-
-                GlobalMemoryStatusEx(ref memInfo);
-
-                _sensorValues.RamUse_value = ((memInfo.ullTotalPhys - memInfo.ullAvailPhys) * 100 / memInfo.ullTotalPhys).ToString().Substring(0, 2) + "%";
+                //_sensorValues.RamUse_value = ((memInfo.ullTotalPhys - memInfo.ullAvailPhys) * 100 / memInfo.ullTotalPhys).ToString().Substring(0, 2) + "%";
                 PostItem.DispData[2] = _sensorValues.CpuTemp_value;
                 PostItem.DispData[0] = _sensorValues.CpuUse_value;
                 PostItem.DispData[3] = _sensorValues.GpuTemp_value;
@@ -176,22 +184,6 @@ namespace DivoomPCMonitorTool
             await DivoomUpdateDeviceList();
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        public struct MEMORYSTATUSEX
-        {
-            public uint dwLength;
-            public uint dwMemoryLoad;
-            public ulong ullTotalPhys;
-            public ulong ullAvailPhys;      //可用物理内存
-            public ulong ullTotalPageFile;
-            public ulong ullAvailPageFile;
-            public ulong ullTotalVirtual;
-            public ulong ullAvailVirtual;
-            public ulong ullAvailExtendedVirtual;
-        }
-
-        [DllImport("kernel32.dll")]
-        public static extern void GlobalMemoryStatusEx(ref MEMORYSTATUSEX stat);
         private async Task DivoomSendSelectClock()
          {
              _deviceIpAddr = _localList.DeviceList[_devicesListBox.SelectedIndex].DevicePrivateIP;
