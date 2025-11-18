@@ -26,9 +26,9 @@ namespace WindowsFormsApplication1
         public Form1()
         {
             InitializeComponent();
-            this.LCDMsg.Visible = false;
-            this.LCDList.Visible = false;
-            this.DivoomUpdateDeviceList();
+            _lcdMsg.Visible = false;
+            _lcdList.Visible = false;
+            DivoomUpdateDeviceList();
         }
         public static int HttpPost(string url, string sendData, out string reslut)
         {
@@ -42,13 +42,6 @@ namespace WindowsFormsApplication1
                 wbRequest.ContentType = "application/json";
                 wbRequest.ContentLength = data.Length;
                 wbRequest.Timeout = 1000;
-
-                //#region //【1】获得请求流，OK
-                //Stream newStream = wbRequest.GetRequestStream();
-                //newStream.Write(data, 0, data.Length);
-                //newStream.Close();//关闭流
-                //newStream.Dispose();//释放流所占用的资源
-                //#endregion
 
                 #region //
                 using (Stream wStream = wbRequest.GetRequestStream())         //using(){}作为语句，用于定义一个范围，在此范围的末尾将释放对象。
@@ -111,7 +104,7 @@ namespace WindowsFormsApplication1
 
         private void DivoomSendHttpInfo(object sender, EventArgs e)
         {
-            if (this.DeviceIPAddr == null || this.LocalList == null || this.LocalList.DeviceList == null || this.LocalList.DeviceList.Length == 0)
+            if (_deviceIpAddr == null || _localList == null || _localList.DeviceList == null || _localList.DeviceList.Length == 0)
             {
                 return;
 
@@ -124,26 +117,26 @@ namespace WindowsFormsApplication1
             PostInfo.ScreenList = new DivoomDevicePostItem[1];
             PostItem.DispData = new string[6];
 
-            if (DeviceIPAddr.Length > 0)
+            if (_deviceIpAddr.Length > 0)
             {
-                PostItem.LcdId = this.SelectLCDID;
-                computer.Accept(updateVisitor);
-                for (int i = 0; i < computer.Hardware.Count; i++)
+                PostItem.LcdId = _selectedLcdId;
+                _computer.Accept(_updateVisitor);
+                for (int i = 0; i < _computer.Hardware.Count; i++)
                 {
                     //查找硬件类型为CPU
-                    if (computer.Hardware[i].HardwareType == HardwareType.Cpu)
+                    if (_computer.Hardware[i].HardwareType == HardwareType.Cpu)
                     {
-                        for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
+                        for (int j = 0; j < _computer.Hardware[i].Sensors.Length; j++)
                         {
                             //找到温度传感器
-                            if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
+                            if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
                             {
-                                CpuTemp_value = computer.Hardware[i].Sensors[j].Value.ToString();
+                                CpuTemp_value = _computer.Hardware[i].Sensors[j].Value.ToString();
                                 CpuTemp_value += "C";
                             }
-                            else if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
+                            else if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
                             {
-                                CpuUse_value = computer.Hardware[i].Sensors[j].Value.ToString();
+                                CpuUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
                                 if (CpuUse_value.Length > 2)
                                 {
                                     CpuUse_value = CpuUse_value.Substring(0, 2);
@@ -152,20 +145,20 @@ namespace WindowsFormsApplication1
                             }
                         }
                     }
-                    else if (computer.Hardware[i].HardwareType == HardwareType.GpuNvidia ||
-                        computer.Hardware[i].HardwareType == HardwareType.GpuAmd || computer.Hardware[i].HardwareType == HardwareType.GpuIntel)
+                    else if (_computer.Hardware[i].HardwareType == HardwareType.GpuNvidia ||
+                        _computer.Hardware[i].HardwareType == HardwareType.GpuAmd || _computer.Hardware[i].HardwareType == HardwareType.GpuIntel)
                     {
-                        for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
+                        for (int j = 0; j < _computer.Hardware[i].Sensors.Length; j++)
                         {
                             //找到温度传感器
-                            if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
+                            if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
                             {
-                                GpuTemp_value = computer.Hardware[i].Sensors[j].Value.ToString();
+                                GpuTemp_value = _computer.Hardware[i].Sensors[j].Value.ToString();
                                 GpuTemp_value += "C";
                             }
-                            else if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
+                            else if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
                             {
-                                GpuUse_value = computer.Hardware[i].Sensors[j].Value.ToString();
+                                GpuUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
                                 if (GpuUse_value.Length > 2)
                                 {
                                     GpuUse_value = GpuUse_value.Substring(0, 2);
@@ -174,14 +167,14 @@ namespace WindowsFormsApplication1
                             }
                         }
                     }
-                    else if (computer.Hardware[i].HardwareType == HardwareType.Storage)
+                    else if (_computer.Hardware[i].HardwareType == HardwareType.Storage)
                     {
-                        for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
+                        for (int j = 0; j < _computer.Hardware[i].Sensors.Length; j++)
                         {
                             //HDD TEMP
-                            if (computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
+                            if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
                             {
-                                HardDiskUse_value = computer.Hardware[i].Sensors[j].Value.ToString();
+                                HardDiskUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
                                 HardDiskUse_value += "C";
                                 break;
                             }
@@ -202,31 +195,16 @@ namespace WindowsFormsApplication1
                 PostItem.DispData[5] = HardDiskUse_value;
                 PostItem.DispData[4] = DispUse_value;
                 PostInfo.ScreenList[0] = PostItem;
-                this.CpuTemp.Text = "CpuTemp:" + CpuTemp_value;
-                this.CpuUse.Text = "CpuUse:" + CpuUse_value;
-                this.GpuTemp.Text = "GpuTemp:" + GpuTemp_value;
-                this.GpuUse.Text = "GpuUse:" + GpuUse_value;
-                this.HddUse.Text = "HddUse:" + HardDiskUse_value;
-                this.DispUse.Text = "DispUse:" + DispUse_value;
-                /*
-                 * 
-                // 获取硬盘使用情况
-                foreach (DriveInfo drive in DriveInfo.GetDrives())
-                {
-                    if (drive.IsReady)
-                    {
-                        Console.WriteLine("{0} 硬盘使用情况：", drive.Name);
-                        Console.WriteLine("总容量：{0} GB", drive.TotalSize / 1024 / 1024 / 1024);
-                        Console.WriteLine("已使用容量：{0} GB", (drive.TotalSize - drive.AvailableFreeSpace) / 1024 / 1024 / 1024);
-                        Console.WriteLine("可用容量：{0} GB", drive.AvailableFreeSpace / 1024 / 1024 / 1024);
-                    }
-                }
-
-                 * */
+                _cpuTemp.Text = "CpuTemp:" + CpuTemp_value;
+                _cpuUse.Text = "CpuUse:" + CpuUse_value;
+                _gpuTemp.Text = "GpuTemp:" + GpuTemp_value;
+                _gpuUse.Text = "GpuUse:" + GpuUse_value;
+                _hddUse.Text = "HddUse:" + HardDiskUse_value;
+                _dispUse.Text = "DispUse:" + DispUse_value;
                 string para_info = JsonConvert.SerializeObject(PostInfo);
                 Console.WriteLine("request info:" + para_info);
                 string response_info;
-                HttpPost("http://" + DeviceIPAddr + ":80/post", para_info, out response_info);
+                HttpPost("http://" + _deviceIpAddr + ":80/post", para_info, out response_info);
                 Console.WriteLine("get info:" + response_info);
             }
         }
@@ -236,17 +214,17 @@ namespace WindowsFormsApplication1
             string url_info = "http://app.divoom-gz.com/Device/ReturnSameLANDevice";
             string device_list = HttpGet(url_info, "");
             // Console.WriteLine(device_list);
-            this.LocalList = JsonConvert.DeserializeObject<DivoomDeviceList>(device_list);
-            this.divoomList.Items.Clear();
-            for (i = 0; this.LocalList.DeviceList != null && i < this.LocalList.DeviceList.Length; i++)
+            _localList = JsonConvert.DeserializeObject<DivoomDeviceList>(device_list);
+            _devicesListBox.Items.Clear();
+            for (i = 0; _localList.DeviceList != null && i < _localList.DeviceList.Length; i++)
             {
-                this.divoomList.Items.Add(this.LocalList.DeviceList[i].DeviceName);
+                _devicesListBox.Items.Add(_localList.DeviceList[i].DeviceName);
             }
 
         }
         private void refreshList_Click(object sender, EventArgs e)
         {
-            this.DivoomUpdateDeviceList();
+            DivoomUpdateDeviceList();
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -267,60 +245,60 @@ namespace WindowsFormsApplication1
         public static extern void GlobalMemoryStatusEx(ref MEMORYSTATUSEX stat);
         private void DivoomSendSelectClock()
         {
-            DeviceIPAddr = this.LocalList.DeviceList[this.divoomList.SelectedIndex].DevicePrivateIP;
-            Console.WriteLine("selece items:" + DeviceIPAddr);
+            _deviceIpAddr = _localList.DeviceList[_devicesListBox.SelectedIndex].DevicePrivateIP;
+            Console.WriteLine("selece items:" + _deviceIpAddr);
 
-            if (this.LocalList.DeviceList[this.divoomList.SelectedIndex].Hardware == 400)
+            if (_localList.DeviceList[_devicesListBox.SelectedIndex].Hardware == 400)
             {
                 //get the Independence index of timegate 
-                string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + this.LocalList.DeviceList[this.divoomList.SelectedIndex].DeviceId;
+                string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + _localList.DeviceList[_devicesListBox.SelectedIndex].DeviceId;
                 string IndependenceStr = HttpGet(url_info, "");
                 if (IndependenceStr != null && IndependenceStr.Length > 0)
                 {
                     DivoomTimeGateIndependenceInfo IndependenceInfo = JsonConvert.DeserializeObject<DivoomTimeGateIndependenceInfo>(IndependenceStr);
 
-                    this.LcdIndependence = IndependenceInfo.LcdIndependence;
+                    _lcdIndependence = IndependenceInfo.LcdIndependence;
 
                 }
-                this.LCDMsg.Visible = true;
-                this.LCDList.Visible = true;
+                _lcdMsg.Visible = true;
+                _lcdList.Visible = true;
 
             }
             else
             {
-                this.LCDMsg.Visible = false;
-                this.LCDList.Visible = false;
+                _lcdMsg.Visible = false;
+                _lcdList.Visible = false;
             }
 
             DivoomDeviceSelectClockInfo PostInfo = new DivoomDeviceSelectClockInfo();
 
-            PostInfo.LcdIndependence = this.LcdIndependence;
+            PostInfo.LcdIndependence = _lcdIndependence;
             PostInfo.Command = "Channel/SetClockSelectId";
-            PostInfo.LcdIndex = this.LCDList.SelectedIndex;
+            PostInfo.LcdIndex = _lcdList.SelectedIndex;
             PostInfo.ClockId = 625;
             string para_info = JsonConvert.SerializeObject(PostInfo);
             Console.WriteLine("request info:" + para_info);
             string response_info;
-            HttpPost("http://" + DeviceIPAddr + ":80/post", para_info, out response_info);
+            HttpPost("http://" + _deviceIpAddr + ":80/post", para_info, out response_info);
 
         }
         private void divoomList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.DivoomSendSelectClock();
+            DivoomSendSelectClock();
 
 
 
         }
         private void LCDList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string raw_value = this.LCDList.SelectedItems[0].ToString();
-            this.SelectLCDID = Convert.ToInt32(raw_value) - 1;
+            string raw_value = _lcdList.SelectedItems[0].ToString();
+            _selectedLcdId = Convert.ToInt32(raw_value) - 1;
 
-            if(this.LocalList != null && this.LocalList.DeviceList!=null && this.LocalList.DeviceList.Count() > 0)
+            if(_localList != null && _localList.DeviceList!=null && _localList.DeviceList.Count() > 0)
             {
-                if (this.divoomList.SelectedIndex > 0 && this.divoomList.SelectedIndex < this.LocalList.DeviceList.Count())
+                if (_devicesListBox.SelectedIndex > 0 && _devicesListBox.SelectedIndex < _localList.DeviceList.Count())
                 {
-                    this.DivoomSendSelectClock();
+                    DivoomSendSelectClock();
                 }
 
             }

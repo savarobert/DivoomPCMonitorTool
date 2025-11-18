@@ -21,6 +21,27 @@ namespace WindowsFormsApplication1
     }
     partial class Form1
     {
+        private System.Windows.Forms.ListBox _devicesListBox;
+        private System.Windows.Forms.ListBox _lcdList;
+        private System.Windows.Forms.Button _refreshList;
+        private System.Windows.Forms.TextBox _cpuUse;
+        private System.Windows.Forms.TextBox _cpuTemp;
+        private System.Windows.Forms.TextBox _gpuUse;
+        private System.Windows.Forms.TextBox _gpuTemp;
+        private System.Windows.Forms.TextBox _dispUse;
+        private System.Windows.Forms.TextBox _hddUse;
+        private System.Windows.Forms.Label _lcdMsg;
+        private System.Windows.Forms.Label _deviceListMsg;
+        private System.Windows.Forms.Label _hardwareInfo;
+        private DivoomDeviceList _localList;
+        private int _selectedLcdId;
+        private System.Windows.Forms.Timer _timer;
+        private string _deviceIpAddr;
+        private int _lcdIndependence;
+
+        private UpdateVisitor _updateVisitor;
+        private Computer _computer;
+
         /// <summary>
         /// 必需的设计器变量。
         /// </summary>
@@ -47,183 +68,162 @@ namespace WindowsFormsApplication1
         /// </summary>
         private void InitializeComponent()
         {
-            this.refreshList = new System.Windows.Forms.Button();
-            this.CpuUse = new System.Windows.Forms.TextBox();
-            this.CpuTemp = new System.Windows.Forms.TextBox();
-            this.GpuUse = new System.Windows.Forms.TextBox();
-            this.GpuTemp = new System.Windows.Forms.TextBox();
-            this.DispUse = new System.Windows.Forms.TextBox();
-            this.HddUse = new System.Windows.Forms.TextBox();
-            this.divoomList = new System.Windows.Forms.ListBox();
-            this.LCDList = new System.Windows.Forms.ListBox();
-            this.LCDMsg = new System.Windows.Forms.Label();
-            this.DeviceListMsg = new System.Windows.Forms.Label();
-            this.HardwareInfo = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            _refreshList = new System.Windows.Forms.Button();
+            _cpuUse = new System.Windows.Forms.TextBox();
+            _cpuTemp = new System.Windows.Forms.TextBox();
+            _gpuUse = new System.Windows.Forms.TextBox();
+            _gpuTemp = new System.Windows.Forms.TextBox();
+            _dispUse = new System.Windows.Forms.TextBox();
+            _hddUse = new System.Windows.Forms.TextBox();
+            _devicesListBox = new System.Windows.Forms.ListBox();
+            _lcdList = new System.Windows.Forms.ListBox();
+            _lcdMsg = new System.Windows.Forms.Label();
+            _deviceListMsg = new System.Windows.Forms.Label();
+            _hardwareInfo = new System.Windows.Forms.Label();
+            SuspendLayout();
 
             // 
             // DeviceListMsg
             // 
-            this.DeviceListMsg.Location = new System.Drawing.Point(100, 10);
-            this.DeviceListMsg.Name = "DeviceListMsg";
-            this.DeviceListMsg.Size = new System.Drawing.Size(100, 20);
-            this.DeviceListMsg.Text = "Device list";
+            _deviceListMsg.Location = new System.Drawing.Point(100, 10);
+            _deviceListMsg.Name = "DeviceListMsg";
+            _deviceListMsg.Size = new System.Drawing.Size(100, 20);
+            _deviceListMsg.Text = "Device list";
             // 
-            // listbox
+            // devicesListBox
             // 
-            this.divoomList.Location = new System.Drawing.Point(100, 30);
-            this.divoomList.Name = "DeviceList";
-            this.divoomList.Size = new System.Drawing.Size(100, 230);
-            this.divoomList.TabIndex = 2;//CheckedListBoxes
-            this.divoomList.SelectedIndexChanged += new System.EventHandler(this.divoomList_SelectedIndexChanged);
+            _devicesListBox.Location = new System.Drawing.Point(100, 30);
+            _devicesListBox.Name = "DeviceList";
+            _devicesListBox.Size = new System.Drawing.Size(100, 230);
+            _devicesListBox.TabIndex = 2;//CheckedListBoxes
+            _devicesListBox.SelectedIndexChanged += new System.EventHandler(divoomList_SelectedIndexChanged);
             // 
             // refresh list
             // 
-            this.refreshList.Location = new System.Drawing.Point(100, 260);
-            this.refreshList.Name = "refresh list";
-            this.refreshList.Size = new System.Drawing.Size(100, 23);
-            this.refreshList.TabIndex = 0;
-            this.refreshList.Text = "refresh list";
-            this.refreshList.UseVisualStyleBackColor = true;
-            this.refreshList.Click += new System.EventHandler(this.refreshList_Click);
+            _refreshList.Location = new System.Drawing.Point(100, 260);
+            _refreshList.Name = "refresh list";
+            _refreshList.Size = new System.Drawing.Size(100, 23);
+            _refreshList.TabIndex = 0;
+            _refreshList.Text = "refresh list";
+            _refreshList.UseVisualStyleBackColor = true;
+            _refreshList.Click += new System.EventHandler(refreshList_Click);
 
             // 
             // LCDMsg
             // 
-            this.LCDMsg.Location = new System.Drawing.Point(20, 10);
-            this.LCDMsg.Name = "DeviceListMsg";
-            this.LCDMsg.Size = new System.Drawing.Size(80, 20);
-            this.LCDMsg.Text = "Select LCD";
+            _lcdMsg.Location = new System.Drawing.Point(20, 10);
+            _lcdMsg.Name = "DeviceListMsg";
+            _lcdMsg.Size = new System.Drawing.Size(80, 20);
+            _lcdMsg.Text = "Select LCD";
             // LCDList
             // 
-            this.LCDList.Location = new System.Drawing.Point(20, 30);
-            this.LCDList.Name = "LCDList";
-            this.LCDList.Size = new System.Drawing.Size(20, 100);
-            this.LCDList.TabIndex = 2;//CheckedListBoxes
-            this.LCDList.SelectedIndexChanged += new System.EventHandler(this.LCDList_SelectedIndexChanged);
-            this.LCDList.Items.Add("1");
-            this.LCDList.Items.Add("2");
-            this.LCDList.Items.Add("3");
-            this.LCDList.Items.Add("4");
-            this.LCDList.Items.Add("5");
-            this.LCDList.SetSelected(0, true);
+            _lcdList.Location = new System.Drawing.Point(20, 30);
+            _lcdList.Name = "LCDList";
+            _lcdList.Size = new System.Drawing.Size(20, 100);
+            _lcdList.TabIndex = 2;//CheckedListBoxes
+            _lcdList.SelectedIndexChanged += new System.EventHandler(LCDList_SelectedIndexChanged);
+            _lcdList.Items.Add("1");
+            _lcdList.Items.Add("2");
+            _lcdList.Items.Add("3");
+            _lcdList.Items.Add("4");
+            _lcdList.Items.Add("5");
+            _lcdList.SetSelected(0, true);
 
 
             // 
             // HardwareInfo
             // 
-            this.HardwareInfo.Location = new System.Drawing.Point(220, 10);
-            this.HardwareInfo.Name = "HardwareInfo";
-            this.HardwareInfo.Size = new System.Drawing.Size(180, 20);
-            this.HardwareInfo.Text = "Hardware information";
+            _hardwareInfo.Location = new System.Drawing.Point(220, 10);
+            _hardwareInfo.Name = "HardwareInfo";
+            _hardwareInfo.Size = new System.Drawing.Size(180, 20);
+            _hardwareInfo.Text = "Hardware information";
 
             // 
             // CpuUse
             // 
-            this.CpuUse.Location = new System.Drawing.Point(220, 30);
-            this.CpuUse.Name = "PCUser";
-            this.CpuUse.Size = new System.Drawing.Size(100, 20);
-            this.CpuUse.TabIndex = 1;
+            _cpuUse.Location = new System.Drawing.Point(220, 30);
+            _cpuUse.Name = "PCUser";
+            _cpuUse.Size = new System.Drawing.Size(100, 20);
+            _cpuUse.TabIndex = 1;
             // 
 
             // CpuTemp
             // 
-            this.CpuTemp.Location = new System.Drawing.Point(220, 60);
-            this.CpuTemp.Name = "textBox1";
-            this.CpuTemp.Size = new System.Drawing.Size(100, 20);
-            this.CpuTemp.TabIndex = 1;
+            _cpuTemp.Location = new System.Drawing.Point(220, 60);
+            _cpuTemp.Name = "textBox1";
+            _cpuTemp.Size = new System.Drawing.Size(100, 20);
+            _cpuTemp.TabIndex = 1;
 
             // 
-            // CpuUse
+            // GpuUse
             // 
-            this.GpuUse.Location = new System.Drawing.Point(220, 90);
-            this.GpuUse.Name = "PCUser";
-            this.GpuUse.Size = new System.Drawing.Size(100, 20);
-            this.GpuUse.TabIndex = 1;
+            _gpuUse.Location = new System.Drawing.Point(220, 90);
+            _gpuUse.Name = "PCUser";
+            _gpuUse.Size = new System.Drawing.Size(100, 20);
+            _gpuUse.TabIndex = 1;
             // 
 
-            // CpuTemp
+            // GpuTemp
             // 
-            this.GpuTemp.Location = new System.Drawing.Point(220, 120);
-            this.GpuTemp.Name = "textBox1";
-            this.GpuTemp.Size = new System.Drawing.Size(100, 20);
-            this.GpuTemp.TabIndex = 1;
+            _gpuTemp.Location = new System.Drawing.Point(220, 120);
+            _gpuTemp.Name = "textBox1";
+            _gpuTemp.Size = new System.Drawing.Size(100, 20);
+            _gpuTemp.TabIndex = 1;
 
 
-            // CpuTemp
+            // DispUse
             // 
-            this.DispUse.Location = new System.Drawing.Point(220, 150);
-            this.DispUse.Name = "textBox1";
-            this.DispUse.Size = new System.Drawing.Size(100, 20);
-            this.DispUse.TabIndex = 1;
+            _dispUse.Location = new System.Drawing.Point(220, 150);
+            _dispUse.Name = "textBox1";
+            _dispUse.Size = new System.Drawing.Size(100, 20);
+            _dispUse.TabIndex = 1;
 
 
-            // CpuTemp
+            // HddUse
             // 
-            this.HddUse.Location = new System.Drawing.Point(220, 180);
-            this.HddUse.Name = "textBox1";
-            this.HddUse.Size = new System.Drawing.Size(100, 20);
-            this.HddUse.TabIndex = 1;
+            _hddUse.Location = new System.Drawing.Point(220, 180);
+            _hddUse.Name = "textBox1";
+            _hddUse.Size = new System.Drawing.Size(100, 20);
+            _hddUse.TabIndex = 1;
 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(400, 300);
-            this.Controls.Add(this.CpuUse);
-            this.Controls.Add(this.CpuTemp);
-            this.Controls.Add(this.GpuUse);
-            this.Controls.Add(this.GpuTemp);
-            this.Controls.Add(this.DispUse);
-            this.Controls.Add(this.HddUse);
-            this.Controls.Add(this.refreshList);
-            this.Controls.Add(this.divoomList);
-            this.Controls.Add(this.LCDList);
-            this.Controls.Add(this.LCDMsg);
-            this.Controls.Add(this.DeviceListMsg);
-            this.Controls.Add(this.HardwareInfo);
+            AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(400, 300);
+            Controls.Add(_cpuUse);
+            Controls.Add(_cpuTemp);
+            Controls.Add(_gpuUse);
+            Controls.Add(_gpuTemp);
+            Controls.Add(_dispUse);
+            Controls.Add(_hddUse);
+            Controls.Add(_refreshList);
+            Controls.Add(_devicesListBox);
+            Controls.Add(_lcdList);
+            Controls.Add(_lcdMsg);
+            Controls.Add(_deviceListMsg);
+            Controls.Add(_hardwareInfo);
             System.AppDomain.CurrentDomain.ProcessExit += new System.EventHandler(CurrentDomain_ProcessExit);  
-            this.Name = "DivoomPcTool";
-            this.Text = "DivoomPcTool";
-            this.SelectLCDID = 0;
-            this.DeviceIPAddr = "";
+            Name = "DivoomPcTool";
+            Text = "DivoomPcTool";
+            _selectedLcdId = 0;
+            _deviceIpAddr = "";
 
-            this.updateVisitor = new UpdateVisitor();
-            this.computer = new Computer();
-            this.computer.IsStorageEnabled = true;
-            this.computer.Open();
+            _updateVisitor = new UpdateVisitor();
+            _computer = new Computer();
+            _computer.IsStorageEnabled = true;
+            _computer.Open();
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();//创建定时器
             timer.Tick += new System.EventHandler(DivoomSendHttpInfo);//事件处理
             timer.Enabled = true;//设置启用定时器
             timer.Interval = 2000;//执行时间
             timer.Start();//开启定时器
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.ListBox divoomList;
-        private System.Windows.Forms.ListBox LCDList;
-        private System.Windows.Forms.Button refreshList;
-        private System.Windows.Forms.TextBox CpuUse;
-        private System.Windows.Forms.TextBox CpuTemp;
-        private System.Windows.Forms.TextBox GpuUse;
-        private System.Windows.Forms.TextBox GpuTemp;
-        private System.Windows.Forms.TextBox DispUse;
-        private System.Windows.Forms.TextBox HddUse;
-        private System.Windows.Forms.Label LCDMsg;
-        private System.Windows.Forms.Label DeviceListMsg;
-        private System.Windows.Forms.Label HardwareInfo;
-        private DivoomDeviceList LocalList;
-        private int SelectLCDID;
-        private System.Windows.Forms.Timer timer;
-        private string DeviceIPAddr;
-        private int LcdIndependence;
-
-        UpdateVisitor updateVisitor;
-        Computer computer;
 
     }
 }
