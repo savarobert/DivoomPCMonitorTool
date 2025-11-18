@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="DivoomPcMonitor.Domain/DivoomPcMonitor.Domain.csproj" Id="f71a368d-85f7-44d4-aa0a-c0c025650ea1" />
   <Project Path="DivoomPcMonitor.Infrastructure/DivoomPcMonitor.Infrastructure.csproj" Id="c3c600d9-edf3-400e-b70e-1cc36b8d5d10" />
+  <Project Path="DivoomPcMonitorTool.UI/DivoomPcMonitorTool.UI.csproj" Id="7e0dca58-9870-4f30-b6a1-5a050d5582f4" />
   <Project Path="WindowsFormsApplication1/DivoomPCMonitorTool.csproj" Id="2b41c74a-956d-48e5-b424-8f839b211c8a" />
 </Solution>
