@@ -68,155 +68,238 @@ namespace DivoomPCMonitorTool
 
             }
 
-            var PostItem = new DevicePostItem { LcdId = _selectedLcdId, DispData = new string[6] };
-            var PostInfo = new DevicePostList { Command = "Device/UpdatePCParaInfo", ScreenList = new[] { PostItem } };
+            var postItem = new DevicePostItem { LcdId = _selectedLcdId, DispData = new string[6] };
+            var postInfo = new DevicePostList { Command = "Device/UpdatePCParaInfo", ScreenList = new[] { postItem } };
 
-            if (_deviceIpAddr.Length > 0)
+            if (_deviceIpAddr.Length <= 0) return;
+            _computer.Accept(_updateVisitor);
+            foreach (var hardware in _computer.Hardware)
             {
-                _computer.Accept(_updateVisitor);
-                for (int i = 0; i < _computer.Hardware.Count; i++)
+                switch (hardware.HardwareType)
                 {
                     //查找硬件类型为CPU
-                    if (_computer.Hardware[i].HardwareType == HardwareType.Cpu)
+                    case HardwareType.Cpu:
                     {
-                        for (int j = 0; j < _computer.Hardware[i].Sensors.Length; j++)
+                        foreach (var t in hardware.Sensors)
                         {
-                            //找到温度传感器
-                            if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
+                            switch (t.SensorType)
                             {
-                                _sensorValues.CpuTemp_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                _sensorValues.CpuTemp_value += "C";
-                            }
-                            else if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
-                            {
-                                _sensorValues.CpuUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                if (_sensorValues.CpuUse_value.Length > 2)
+                                //找到温度传感器
+                                case SensorType.Temperature:
+                                    _sensorValues.CpuTempValue = t.Value.ToString();
+                                    _sensorValues.CpuTempValue += "C";
+                                    break;
+                                case SensorType.Load:
                                 {
-                                    _sensorValues.CpuUse_value = _sensorValues.CpuUse_value.Substring(0, 2);
+                                    _sensorValues.CpuUseValue = t.Value.ToString();
+                                    if (_sensorValues.CpuUseValue.Length > 2)
+                                    {
+                                        _sensorValues.CpuUseValue = _sensorValues.CpuUseValue.Substring(0, 2);
+                                    }
+                                    _sensorValues.CpuUseValue += "%";
+                                    break;
                                 }
-                                _sensorValues.CpuUse_value += "%";
+                                case SensorType.Voltage:
+                                case SensorType.Current:
+                                case SensorType.Power:
+                                case SensorType.Clock:
+                                case SensorType.Frequency:
+                                case SensorType.Fan:
+                                case SensorType.Flow:
+                                case SensorType.Control:
+                                case SensorType.Level:
+                                case SensorType.Factor:
+                                case SensorType.Data:
+                                case SensorType.SmallData:
+                                case SensorType.Throughput:
+                                case SensorType.TimeSpan:
+                                case SensorType.Timing:
+                                case SensorType.Energy:
+                                case SensorType.Noise:
+                                case SensorType.Conductivity:
+                                case SensorType.Humidity:
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
                             }
                         }
-                    }
-                    else if (_computer.Hardware[i].HardwareType is HardwareType.GpuNvidia or HardwareType.GpuAmd or HardwareType.GpuIntel)
-                    {
-                        for (int j = 0; j < _computer.Hardware[i].Sensors.Length; j++)
-                        {
-                            //找到温度传感器
-                            if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
-                            {
-                                _sensorValues.GpuTemp_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                _sensorValues.GpuTemp_value += "C";
-                            }
-                            else if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
-                            {
-                                _sensorValues.GpuUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                if (_sensorValues.GpuUse_value.Length > 2)
-                                {
-                                    _sensorValues.GpuUse_value = _sensorValues.GpuUse_value.Substring(0, 2);
-                                }
-                                _sensorValues.GpuUse_value += "%";
-                            }
-                        }
-                    }
-                    else if (_computer.Hardware[i].HardwareType == HardwareType.Storage)
-                    {
-                        for (int j = 0; j < _computer.Hardware[i].Sensors.Length; j++)
-                        {
-                            //HDD TEMP
-                            if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Temperature)
-                            {
-                                _sensorValues.HardDiskUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                _sensorValues.HardDiskUse_value += "C";
-                                break;
-                            }
-                        }
-                    }
-                    else if (_computer.Hardware[i].HardwareType == HardwareType.Memory && _computer.Hardware[i].Name.Equals("Total Memory"))
-                    {
-                        for (int j = 0; j < _computer.Hardware[i].Sensors.Length; j++)
-                        {
-                            //HDD TEMP
-                            if (_computer.Hardware[i].Sensors[j].SensorType == SensorType.Load)
-                            {
-                                _sensorValues.RamUse_value = _computer.Hardware[i].Sensors[j].Value.ToString();
-                                _sensorValues.RamUse_value += "%";
-                                break;
-                            }
-                        }
-                    }
-                }
 
-                //_sensorValues.RamUse_value = ((memInfo.ullTotalPhys - memInfo.ullAvailPhys) * 100 / memInfo.ullTotalPhys).ToString().Substring(0, 2) + "%";
-                PostItem.DispData[2] = _sensorValues.CpuTemp_value;
-                PostItem.DispData[0] = _sensorValues.CpuUse_value;
-                PostItem.DispData[3] = _sensorValues.GpuTemp_value;
-                PostItem.DispData[1] = _sensorValues.GpuUse_value;
-                PostItem.DispData[5] = _sensorValues.HardDiskUse_value;
-                PostItem.DispData[4] = _sensorValues.RamUse_value;
-                _cpuTemp.Text = "CpuTemp: " + _sensorValues.CpuTemp_value;
-                _cpuUse.Text = "CpuUse: " + _sensorValues.CpuUse_value;
-                _gpuTemp.Text = "GpuTemp: " + _sensorValues.GpuTemp_value;
-                _gpuUse.Text = "GpuUse: " + _sensorValues.GpuUse_value;
-                _hddUse.Text = "HddUse: " + _sensorValues.HardDiskUse_value;
-                _RamUse.Text = "RamUse: " + _sensorValues.RamUse_value;
-                string para_info = JsonConvert.SerializeObject(PostInfo);
-                Console.WriteLine("request info:" + para_info);
-                string response_info = await HttpPostAsync("http://" + _deviceIpAddr + ":80/post", para_info);
-                Console.WriteLine("get info:" + response_info);
+                        break;
+                    }
+                    case HardwareType.GpuNvidia or HardwareType.GpuAmd or HardwareType.GpuIntel:
+                        {
+                            foreach (var t in hardware.Sensors)
+                            {
+                                switch (t.SensorType)
+                                {
+                                    //找到温度传感器
+                                    case SensorType.Temperature:
+                                        _sensorValues.GpuTempValue = t.Value.ToString();
+                                        _sensorValues.GpuTempValue += "C";
+                                        break;
+                                    case SensorType.Load:
+                                        {
+                                            _sensorValues.GpuUseValue = t.Value.ToString();
+                                            if (_sensorValues.GpuUseValue.Length > 2)
+                                            {
+                                                _sensorValues.GpuUseValue = _sensorValues.GpuUseValue.Substring(0, 2);
+                                            }
+                                            _sensorValues.GpuUseValue += "%";
+                                            break;
+                                        }
+                                    case SensorType.Voltage:
+                                    case SensorType.Current:
+                                    case SensorType.Power:
+                                    case SensorType.Clock:
+                                    case SensorType.Frequency:
+                                    case SensorType.Fan:
+                                    case SensorType.Flow:
+                                    case SensorType.Control:
+                                    case SensorType.Level:
+                                    case SensorType.Factor:
+                                    case SensorType.Data:
+                                    case SensorType.SmallData:
+                                    case SensorType.Throughput:
+                                    case SensorType.TimeSpan:
+                                    case SensorType.Timing:
+                                    case SensorType.Energy:
+                                    case SensorType.Noise:
+                                    case SensorType.Conductivity:
+                                    case SensorType.Humidity:
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException();
+                                }
+                            }
+
+                            break;
+                        }
+                    case HardwareType.Storage:
+                        {
+                            foreach (var t in hardware.Sensors)
+                            {
+                                switch (t.SensorType)
+                                {
+                                    //HDD TEMP
+                                    case SensorType.Temperature:
+                                        _sensorValues.HardDiskUseValue = t.Value.ToString();
+                                        _sensorValues.HardDiskUseValue += "C";
+                                        break;
+                                    case SensorType.Voltage:
+                                    case SensorType.Current:
+                                    case SensorType.Power:
+                                    case SensorType.Clock:
+                                    case SensorType.Load:
+                                    case SensorType.Frequency:
+                                    case SensorType.Fan:
+                                    case SensorType.Flow:
+                                    case SensorType.Control:
+                                    case SensorType.Level:
+                                    case SensorType.Factor:
+                                    case SensorType.Data:
+                                    case SensorType.SmallData:
+                                    case SensorType.Throughput:
+                                    case SensorType.TimeSpan:
+                                    case SensorType.Timing:
+                                    case SensorType.Energy:
+                                    case SensorType.Noise:
+                                    case SensorType.Conductivity:
+                                    case SensorType.Humidity:
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException();
+                                }
+                            }
+
+                            break;
+                        }
+                    case HardwareType.Memory when hardware.Name.Equals("Total Memory"):
+                        {
+                            foreach (var t in hardware.Sensors)
+                            {
+                                switch (t.SensorType)
+                                {
+                                    //MEMORY USAGE
+                                    case SensorType.Load:
+                                        _sensorValues.RamUseValue = t.Value.ToString()[..4];
+                                        _sensorValues.RamUseValue += "%";
+                                        break;
+                                }
+                            }
+
+                            break;
+                        }
+                }
             }
+
+            postItem.DispData[2] = _sensorValues.CpuTempValue;
+            postItem.DispData[0] = _sensorValues.CpuUseValue;
+            postItem.DispData[3] = _sensorValues.GpuTempValue;
+            postItem.DispData[1] = _sensorValues.GpuUseValue;
+            postItem.DispData[5] = _sensorValues.HardDiskUseValue;
+            postItem.DispData[4] = _sensorValues.RamUseValue;
+            _cpuTemp.Text = "CpuTemp: " + _sensorValues.CpuTempValue;
+            _cpuUse.Text = "CpuUse: " + _sensorValues.CpuUseValue;
+            _gpuTemp.Text = "GpuTemp: " + _sensorValues.GpuTempValue;
+            _gpuUse.Text = "GpuUse: " + _sensorValues.GpuUseValue;
+            _hddUse.Text = "HddUse: " + _sensorValues.HardDiskUseValue;
+            _RamUse.Text = "RamUse: " + _sensorValues.RamUseValue;
+            string para_info = JsonConvert.SerializeObject(postInfo);
+            Console.WriteLine("request info:" + para_info);
+            string response_info = await HttpPostAsync("http://" + _deviceIpAddr + ":80/post", para_info);
+            Console.WriteLine("get info:" + response_info);
         }
         private async Task DivoomUpdateDeviceList()
-         {
-             int i;
+        {
+            int i;
             string deviceList = await HttpGetAsync(UrlInfo);
-             // Console.WriteLine(device_list);
-             _localList = JsonConvert.DeserializeObject<DivoomDeviceList>(deviceList);
-             _devicesListBox.Items.Clear();
-             for (i = 0; _localList.DeviceList != null && i < _localList.DeviceList.Length; i++)
-             {
-                 _devicesListBox.Items.Add(_localList.DeviceList[i].DeviceName);
-             }
+            // Console.WriteLine(device_list);
+            _localList = JsonConvert.DeserializeObject<DivoomDeviceList>(deviceList);
+            _devicesListBox.Items.Clear();
+            for (i = 0; _localList.DeviceList != null && i < _localList.DeviceList.Length; i++)
+            {
+                _devicesListBox.Items.Add(_localList.DeviceList[i].DeviceName);
+            }
 
-         }
+        }
         private async void refreshList_Click(object sender, EventArgs e)
         {
             await DivoomUpdateDeviceList();
         }
 
         private async Task DivoomSendSelectClock()
-         {
-             _deviceIpAddr = _localList.DeviceList[_devicesListBox.SelectedIndex].DevicePrivateIP;
-             Console.WriteLine("selece items:" + _deviceIpAddr);
+        {
+            _deviceIpAddr = _localList.DeviceList[_devicesListBox.SelectedIndex].DevicePrivateIP;
+            Console.WriteLine("selece items:" + _deviceIpAddr);
 
-             if (_localList.DeviceList[_devicesListBox.SelectedIndex].Hardware == 400)
-             {
-                 //get the Independence index of timegate 
-                 string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + _localList.DeviceList[_devicesListBox.SelectedIndex].DeviceId;
+            if (_localList.DeviceList[_devicesListBox.SelectedIndex].Hardware == 400)
+            {
+                //get the Independence index of timegate 
+                string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + _localList.DeviceList[_devicesListBox.SelectedIndex].DeviceId;
                 string IndependenceStr = await HttpGetAsync(url_info);
-                 if (IndependenceStr != null && IndependenceStr.Length > 0)
-                 {
-                     TimeGateIndependenceInfo IndependenceInfo = JsonConvert.DeserializeObject<TimeGateIndependenceInfo>(IndependenceStr);
+                if (IndependenceStr != null && IndependenceStr.Length > 0)
+                {
+                    TimeGateIndependenceInfo IndependenceInfo = JsonConvert.DeserializeObject<TimeGateIndependenceInfo>(IndependenceStr);
 
-                     _lcdIndependence = IndependenceInfo.LcdIndependence;
+                    _lcdIndependence = IndependenceInfo.LcdIndependence;
 
-                 }
-                 _lcdMsg.Visible = true;
-                 _lcdList.Visible = true;
+                }
+                _lcdMsg.Visible = true;
+                _lcdList.Visible = true;
 
-             }
-             else
-             {
-                 _lcdMsg.Visible = false;
-                 _lcdList.Visible = false;
-             }
+            }
+            else
+            {
+                _lcdMsg.Visible = false;
+                _lcdList.Visible = false;
+            }
 
-             var PostInfo = new DeviceSelectClockInfo { LcdIndependence = _lcdIndependence, Command = "Channel/SetClockSelectId", LcdIndex = _lcdList.SelectedIndex, ClockId = 625 };
-             string para_info = JsonConvert.SerializeObject(PostInfo);
-             Console.WriteLine("request info:" + para_info);
-             string response_info = await HttpPostAsync("http://" + _deviceIpAddr + ":80/post", para_info);
+            var PostInfo = new DeviceSelectClockInfo { LcdIndependence = _lcdIndependence, Command = "Channel/SetClockSelectId", LcdIndex = _lcdList.SelectedIndex, ClockId = 625 };
+            string para_info = JsonConvert.SerializeObject(PostInfo);
+            Console.WriteLine("request info:" + para_info);
+            string response_info = await HttpPostAsync("http://" + _deviceIpAddr + ":80/post", para_info);
 
-         }
+        }
         private async void divoomList_SelectedIndexChanged(object sender, EventArgs e)
         {
             await DivoomSendSelectClock();
@@ -226,17 +309,17 @@ namespace DivoomPCMonitorTool
             string raw_value = _lcdList.SelectedItems[0].ToString();
             _selectedLcdId = Convert.ToInt32(raw_value) - 1;
 
-            if(_localList != null && _localList.DeviceList!=null && _localList.DeviceList.Count() > 0)
+            if (_localList != null && _localList.DeviceList != null && _localList.DeviceList.Count() > 0)
             {
                 if (_devicesListBox.SelectedIndex > 0 && _devicesListBox.SelectedIndex < _localList.DeviceList.Count())
                 {
                     await DivoomSendSelectClock();
-                 }
+                }
 
-             }
+            }
 
 
-         }
+        }
         public void CurrentDomain_ProcessExit(object sender, EventArgs e)
         {
             Console.WriteLine("exit");
@@ -254,7 +337,8 @@ namespace DivoomPCMonitorTool
         public void VisitHardware(IHardware hardware)
         {
             hardware.Update();
-            foreach (IHardware subHardware in hardware.SubHardware){
+            foreach (IHardware subHardware in hardware.SubHardware)
+            {
                 subHardware.Accept(this);
                 foreach (ISensor sensor in subHardware.Sensors)
                 {

@@ -6,12 +6,12 @@ namespace DivoomPcMonitor.Domain.Contracts
 {
     public record SensorValues
     {
-        public string CpuTemp_value = "--";
+        public string CpuTempValue { get; set; } = "--";
 
-        public string CpuUse_value = "--";
-        public string GpuTemp_value = "--";
-        public string GpuUse_value = "--";
-        public string RamUse_value = "--";
-        public string HardDiskUse_value = "--";
+        public string CpuUseValue { get; set; } = "--";
+        public string GpuTempValue { get; set; } = "--";
+        public string GpuUseValue { get; set; } = "--";
+        public string RamUseValue { get; set; } = "--";
+        public string HardDiskUseValue { get; set; } = "--";
     }
 }
