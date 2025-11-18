@@ -1,11 +1,16 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DivoomPcMonitor.Domain.Clients;
 using DivoomPcMonitor.Domain.Contracts;
 using DivoomPcMonitorTool.UI.Views;
 using LibreHardwareMonitor.Hardware;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DivoomPcMonitorTool.UI.ViewModels
@@ -16,21 +21,33 @@ namespace DivoomPcMonitorTool.UI.ViewModels
         public string Value { get; set; } = "";
         public bool IsActive { get; set; }
     }
+    public class DeviceVm
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Ip { get; set; }
+    }
     public partial class MainWindowViewModel : ViewModelBase
     {
-        ListBox _devicesListBox;
-        ListBox _lcdList;
-        Button _refreshList;
-        TextBox _cpuUse;
-        TextBox _cpuTemp;
-        TextBox _gpuUse;
-        TextBox _gpuTemp;
-        TextBox _RamUse;
-        TextBox _hddUse;
+        private readonly IHttpServiceClient _httpServiceClient;
+
+        [ObservableProperty] private ObservableCollection<DeviceVm> _devicesListBox = new();
+        [ObservableProperty]
+        private DeviceVm? _selectedDevice;
+        public ListBox LcdList { get; set; } = new ListBox();
+        public TextBox CpuUse { get; set; } = new TextBox();
+        public TextBox CpuTemp { get; set; } = new TextBox();
+        public TextBox GpuUse { get; set; } = new TextBox();
+        public TextBox GpuTemp { get; set; } = new TextBox();
+        public TextBox RamUse { get; set; } = new TextBox();
+        public TextBox HddUse { get; set; } = new TextBox();
         public string[] MyItems { get; set; } = new string[] { "2", "2" , "3", "4"};
-        public string _lcdMsg { get; } = "LCD DIsplays";
-        public string _deviceListMsg { get; } = "Divoom Devices on LAN";
-        public string _hardwareInfo { get; } =  "Hardware Information";
+        public string LcdMessage { get; } = "LCD Displays";
+        public string DeviceListMessage { get; set; } = "Divoom Devices on LAN";
+        public string HardwareInfoMessage { get; } =  "Hardware Information";
+        public bool ShowLcd { get; set; }
+        public bool ShowDevicesList { get; set; }
+        public bool ShowHardwareInfo { get; set; }
 
         public ObservableCollection<HardwareInfoVm> HardwareInfos { get; } = new();
 
@@ -71,8 +88,11 @@ namespace DivoomPcMonitorTool.UI.ViewModels
             set => SetProperty(ref _statusText, value);
         }
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IHttpServiceClient httpServiceClient)
         {
+            _httpServiceClient = httpServiceClient;
+            ShowLcd = ShowDevicesList = ShowHardwareInfo = false;
+
             IsBusy = true;
             SettingsCommand = new AsyncRelayCommand(OpenSettingsAsync);
             ExitCommand = new RelayCommand(ExitApp);
@@ -83,6 +103,25 @@ namespace DivoomPcMonitorTool.UI.ViewModels
             HardwareInfos.Add(new HardwareInfoVm { Name = "Option 1" });
             HardwareInfos.Add(new HardwareInfoVm { Name = "Option 2" });
             HardwareInfos.Add(new HardwareInfoVm { Name = "Option 3" });
+
+            _sensorValues = new SensorValues();
+
+            _updateVisitor = new UpdateVisitor();
+            _computer = new Computer
+            {
+                IsBatteryEnabled = true,
+                IsControllerEnabled = true,
+                IsCpuEnabled = true,
+                IsGpuEnabled = true,
+                IsMemoryEnabled = true,
+                IsMotherboardEnabled = true,
+                IsNetworkEnabled = false,
+                IsPsuEnabled = true,
+                IsStorageEnabled = true
+            };
+            _computer.Open();
+
+            _ = DivoomUpdateDeviceList();
 
             IsBusy = false;
         }
@@ -96,7 +135,7 @@ namespace DivoomPcMonitorTool.UI.ViewModels
                 StatusText = "Refreshing...";
 
                 // TODO: place actual refresh logic here (e.g., re-scan devices, read sensors)
-                await Task.Delay(500);
+                await DivoomUpdateDeviceList();
 
                 StatusText = "Refresh completed";
             }
@@ -127,6 +166,66 @@ namespace DivoomPcMonitorTool.UI.ViewModels
         {
             var lifetime = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
             lifetime?.Shutdown();
+        }
+
+        private async Task DivoomUpdateDeviceList()
+        {
+            int i;
+            string deviceList = await _httpServiceClient.GetAsync(UrlInfo);
+            // Console.WriteLine(device_list);
+            _localList = JsonSerializer.Deserialize<DivoomDeviceList>(deviceList);
+            DevicesListBox.Clear();
+            for (i = 0; _localList.DeviceList != null && i < _localList.DeviceList.Length; i++)
+            {
+                DevicesListBox.Add(new DeviceVm
+                {
+                    Name = _localList.DeviceList[i].DeviceName,
+                    Ip = _localList.DeviceList[i].DevicePrivateIP,
+                    Id = _localList.DeviceList[i].DeviceId.ToString()
+                });
+            }
+
+        }
+
+        private async Task DivoomSendSelectClock(DeviceVm? value)
+        {
+            _deviceIpAddr = value.Ip;
+            Console.WriteLine("selece items:" + _deviceIpAddr);
+
+            if (_localList.DeviceList.FirstOrDefault(x=>x.DeviceId.ToString( )== value.Id)?.Hardware == 400)
+            {
+                //get the Independence index of timegate 
+                string url_info = "http://app.divoom-gz.com/Channel/Get5LcdInfoV2?DeviceType=LCD&DeviceId=" + value.Id;
+                string IndependenceStr = await _httpServiceClient.GetAsync(url_info);
+                if (IndependenceStr != null && IndependenceStr.Length > 0)
+                {
+                    TimeGateIndependenceInfo IndependenceInfo = JsonSerializer.Deserialize<TimeGateIndependenceInfo>(IndependenceStr);
+
+                    _lcdIndependence = IndependenceInfo.LcdIndependence;
+
+                }
+                ShowLcd = true;
+
+            }
+            else
+            {
+                ShowLcd = false;
+            }
+
+            var PostInfo = new DeviceSelectClockInfo { LcdIndependence = _lcdIndependence, Command = "Channel/SetClockSelectId", LcdIndex = LcdList.SelectedIndex, ClockId = 625 };
+            string para_info = JsonSerializer.Serialize(PostInfo);
+            Console.WriteLine("request info:" + para_info);
+            string response_info = await _httpServiceClient.PostJsonAsync("http://" + _deviceIpAddr + ":80/post", para_info);
+
+        }
+        partial void OnSelectedDeviceChanged(DeviceVm? value)
+        {
+            // This is called every time selection changes
+            if (value is null) return;
+
+            // Do whatever you want here
+            // e.g. update details, start polling, etc.
+            _= DivoomSendSelectClock(value);
         }
     }
 

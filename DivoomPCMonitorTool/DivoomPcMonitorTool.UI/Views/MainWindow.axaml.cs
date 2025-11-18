@@ -8,5 +8,10 @@ namespace DivoomPcMonitorTool.UI.Views
         {
             InitializeComponent();
         }
+
+        private void SelectingItemsControl_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

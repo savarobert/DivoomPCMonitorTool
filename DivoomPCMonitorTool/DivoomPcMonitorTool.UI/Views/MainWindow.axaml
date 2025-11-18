@@ -60,35 +60,40 @@
             <Grid ColumnDefinitions="*,24,*,24,*">
 
                 <!-- LCD Displays -->
-                <HeaderedContentControl Header="{Binding _lcdMsg}"
+                <HeaderedContentControl Header="{Binding LcdMessage}"
                                         Grid.Column="0"
-                                        Padding="12">
+                                        Padding="12" IsVisible="{Binding ShowLcd}">
                     <StackPanel Spacing="12">
                         <StackPanel Spacing="8">
-                            <RadioButton Content="Option 1" IsChecked="True" />
-                            <RadioButton Content="Option 2" />
-                            <RadioButton Content="Option 3" IsChecked="{x:Null}" />
-                            <RadioButton Content="Disabled" IsEnabled="False" />
+                            <ListBox ItemsSource="{Binding LcdList}" />
                         </StackPanel>
                     </StackPanel>
                 </HeaderedContentControl>
 
                 <!-- Divoom Devices on LAN -->
-                <HeaderedContentControl Header="{Binding _deviceListMsg}"
+                <HeaderedContentControl Header="{Binding DeviceListMessage}"
                                         Grid.Column="2"
                                         Padding="12">
                     <StackPanel Spacing="12">
                         <StackPanel Spacing="8">
-                            <RadioButton Content="Option 1" IsChecked="True" />
-                            <RadioButton Content="Option 2" />
-                            <RadioButton Content="Option 3" IsChecked="{x:Null}" />
-                            <RadioButton Content="Disabled" IsEnabled="False" />
+                            <StackPanel Spacing="8">
+                                <ListBox ItemsSource="{Binding DevicesListBox}" SelectedItem="{Binding SelectedDevice, Mode=TwoWay}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Name}" />
+                                                <TextBlock Text="{Binding Ip}" Foreground="Gray" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </HeaderedContentControl>
 
                 <!-- Hardware info (read-only) -->
-                <HeaderedContentControl Header="{Binding _hardwareInfo}"
+                <HeaderedContentControl Header="{Binding HardwareInfoMessage}"
                                         Grid.Column="4"
                                         Padding="12">
                     <StackPanel Spacing="8">
