@@ -6,7 +6,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using OpenHardwareMonitor.Hardware;
 using System.Threading;
 using System.Net;
 using System.IO;
@@ -15,6 +14,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
+using LibreHardwareMonitor.Hardware;
 
 
 namespace WindowsFormsApplication1
@@ -128,10 +128,10 @@ namespace WindowsFormsApplication1
             {
                 PostItem.LcdId = this.SelectLCDID;
                 computer.Accept(updateVisitor);
-                for (int i = 0; i < computer.Hardware.Length; i++)
+                for (int i = 0; i < computer.Hardware.Count; i++)
                 {
                     //查找硬件类型为CPU
-                    if (computer.Hardware[i].HardwareType == HardwareType.CPU)
+                    if (computer.Hardware[i].HardwareType == HardwareType.Cpu)
                     {
                         for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
                         {
@@ -153,7 +153,7 @@ namespace WindowsFormsApplication1
                         }
                     }
                     else if (computer.Hardware[i].HardwareType == HardwareType.GpuNvidia ||
-                        computer.Hardware[i].HardwareType == HardwareType.GpuAti)
+                        computer.Hardware[i].HardwareType == HardwareType.GpuAmd || computer.Hardware[i].HardwareType == HardwareType.GpuIntel)
                     {
                         for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
                         {
@@ -174,7 +174,7 @@ namespace WindowsFormsApplication1
                             }
                         }
                     }
-                    else if (computer.Hardware[i].HardwareType == HardwareType.HDD)
+                    else if (computer.Hardware[i].HardwareType == HardwareType.Storage)
                     {
                         for (int j = 0; j < computer.Hardware[i].Sensors.Length; j++)
                         {

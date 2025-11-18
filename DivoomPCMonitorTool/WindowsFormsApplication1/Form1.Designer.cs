@@ -1,4 +1,6 @@
-﻿namespace WindowsFormsApplication1
+﻿using LibreHardwareMonitor.Hardware;
+
+namespace WindowsFormsApplication1
 {
     public class DivoomDeviceInfo
     {
@@ -187,8 +189,8 @@
             this.DeviceIPAddr = "";
 
             this.updateVisitor = new UpdateVisitor();
-            this.computer = new OpenHardwareMonitor.Hardware.Computer();
-            this.computer.HDDEnabled = true;
+            this.computer = new Computer();
+            this.computer.IsStorageEnabled = true;
             this.computer.Open();
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();//创建定时器
             timer.Tick += new System.EventHandler(DivoomSendHttpInfo);//事件处理
@@ -221,7 +223,7 @@
         private int LcdIndependence;
 
         UpdateVisitor updateVisitor;
-        OpenHardwareMonitor.Hardware.Computer computer;
+        Computer computer;
 
     }
 }
