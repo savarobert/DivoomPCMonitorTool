@@ -17,76 +17,90 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <DockPanel>
-        <!-- Classic top menu -->
+  <DockPanel>
+
+        <!-- Top menu -->
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="Settings" Command="{Binding SettingsCommand}"/>
-                <Separator/>
-                <MenuItem Header="Exit" Command="{Binding ExitCommand}"/>
+                <MenuItem Header="Settings" Command="{Binding SettingsCommand}" />
+                <Separator />
+                <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
             </MenuItem>
         </Menu>
+
         <!-- Bottom status bar -->
         <Border DockPanel.Dock="Bottom" Padding="6">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <!-- small speech-bubble style icon placeholder -->
-                <TextBlock Text="Davoom" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                <TextBlock Text="Davoom" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" />
 
-                <ProgressBar Width="200" Height="14" Margin="12,0,0,0" Minimum="0" Maximum="100" Value="{Binding Progress}" IsVisible="{Binding IsBusy}"/>
+                <ProgressBar Width="200"
+                             Height="14"
+                             Margin="12,0,0,0"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="{Binding Progress}"
+                             IsVisible="{Binding IsBusy}" />
             </StackPanel>
         </Border>
 
-        <!-- Main content stays centered -->
-       <!-- <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>-->
-        <Border DockPanel.Dock="Top">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-                <Border DockPanel.Dock="Left" Padding="10" IsVisible="True">
-                    <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-                        <TextBlock Text="{Binding _lcdMsg}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <StackPanel Orientation="Vertical"
-                                    Spacing="16">
-                            <RadioButton IsChecked="True">_Option 1</RadioButton>
-                            <RadioButton>O_ption 2</RadioButton>
-                            <RadioButton IsChecked="{x:Null}">Op_tion 3</RadioButton>
-                            <RadioButton IsEnabled="False">Disabled</RadioButton>
+        <!-- Main content area -->
+        <Border Margin="32"
+                Background="{DynamicResource ThemeBackgroundBrush}"
+                CornerRadius="8"
+                Padding="24">
+            <Grid ColumnDefinitions="*,24,*,24,*">
+
+                <!-- LCD Displays -->
+                <HeaderedContentControl Header="{Binding _lcdMsg}"
+                                        Grid.Column="0"
+                                        Padding="12">
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="8">
+                            <RadioButton Content="Option 1" IsChecked="True" />
+                            <RadioButton Content="Option 2" />
+                            <RadioButton Content="Option 3" IsChecked="{x:Null}" />
+                            <RadioButton Content="Disabled" IsEnabled="False" />
                         </StackPanel>
                     </StackPanel>
-                </Border>
-                <Border DockPanel.Dock="Left" BorderThickness="1" BoxShadow="">
-                    <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-                        <TextBlock  Text="{Binding _deviceListMsg}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <StackPanel Orientation="Vertical"
-                                    Spacing="16">
-                            <RadioButton IsChecked="True">_Option 1</RadioButton>
-                            <RadioButton>O_ption 2</RadioButton>
-                            <RadioButton IsChecked="{x:Null}">Op_tion 3</RadioButton>
-                            <RadioButton IsEnabled="False">Disabled</RadioButton>
+                </HeaderedContentControl>
+
+                <!-- Divoom Devices on LAN -->
+                <HeaderedContentControl Header="{Binding _deviceListMsg}"
+                                        Grid.Column="2"
+                                        Padding="12">
+                    <StackPanel Spacing="12">
+                        <StackPanel Spacing="8">
+                            <RadioButton Content="Option 1" IsChecked="True" />
+                            <RadioButton Content="Option 2" />
+                            <RadioButton Content="Option 3" IsChecked="{x:Null}" />
+                            <RadioButton Content="Disabled" IsEnabled="False" />
                         </StackPanel>
                     </StackPanel>
-                </Border>
-                <Border DockPanel.Dock="Left">
-                    <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-                        <TextBlock Text="{Binding _hardwareInfo}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </HeaderedContentControl>
+
+                <!-- Hardware info (read-only) -->
+                <HeaderedContentControl Header="{Binding _hardwareInfo}"
+                                        Grid.Column="4"
+                                        Padding="12">
+                    <StackPanel Spacing="8">
                         <ItemsControl ItemsSource="{Binding HardwareInfos}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <!-- small status dot instead of radio -->
-                                        <Ellipse Width="10" Height="10"
-                                                 Stroke="Gray"
-                                                 Fill="{Binding IsActive}" />
-                                        <TextBlock Text="{Binding Name}" />
-                                        <TextBlock Text="{Binding Value}" Margin="8,0,0,0"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Value}"
+                                                   Foreground="Gray" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
-                </Border>
-            </StackPanel>
-        </Border>
+                </HeaderedContentControl>
 
+            </Grid>
+        </Border>
 
     </DockPanel>
 
